@@ -5,14 +5,14 @@
 #include <gcnv2/gcnv2.h>
 
 namespace gcnv2
-{ 
+{
 
 GCNv2DetectorDescriptor::GCNv2DetectorDescriptor( \
     RUNTIME_TYPE runtime_type, int img_height, int img_width, bool use_cuda ) : \
     runtime_type( runtime_type ), \
     img_height( img_height ), \
     img_width( img_width ), \
-    use_cuda( use_cuda ) 
+    use_cuda( use_cuda )
 {
     // Load model
     switch ( runtime_type )
@@ -32,7 +32,7 @@ GCNv2DetectorDescriptor::GCNv2DetectorDescriptor( \
 
 }
 
-// TODO: add ONNX, TVM constructor 
+// TODO: add ONNX, TVM constructor
 
 GCNv2DetectorDescriptor::~GCNv2DetectorDescriptor() {}
 
@@ -41,7 +41,7 @@ void GCNv2FeatureDetector::initTorch( )
 {
     // Set export GCNV2_TORCH_MODEL_PATH="/path/to/model.pt"
     std::string model_filename( std::getenv("GCNV2_TORCH_MODEL_PATH") );
-    
+
     // Try load model
     try
     {
@@ -139,6 +139,32 @@ void GCNv2FeatureDetector::detectAndCompute( cv::InputArray _image, \
 }
 
 
+void NonMaximalSuppression( cv::Mat kpts_raw, \
+                            cv::Mat desc_raw, \
+                            std::vector<cv::KeyPoint>& _keypoints, \
+                            cv::Mat& descriptors, \
+                            int border, \
+                            int dist_threshold)
+{
+    // TODO: needs work
+
+    // create a grid and init a vector for holding indices
+    // put grid[i][j] = 1 for keypoint detects
+
+    // if grid[i][j] = 1 and grid[i+delta][j+delta]=1, put all values around i,j = 0, put grid[i][j] = 2,
+    // keep grid[i][j] = 1
+
+    // places where grid[i][j] == 2, put them in keypoints and save their indices
+    // put saved indices values to descriptors, maybe combine this in one step
+
+    for (int i = 0; i < kpts_raw.rows; ++i)
+    {
+        int u = kpts.at<float>(i, 0);
+        int v = kpts.at<float>(i, 1);
+    }
+}
+
+
 void GCNv2DetectorDescriptor::detectAndComputeTorch( cv::Mat& _gray_image_fp32, \
                                                      std::vector<cv::KeyPoint>& _keypoints, \
                                                      cv::OutputArray& _descriptors )
@@ -154,16 +180,25 @@ void GCNv2DetectorDescriptor::detectAndComputeTorch( cv::Mat& _gray_image_fp32, 
     auto outputs_torch = torch_model.forward(inputs_torch).toTuple();
 
     // Extract output
-    torch::Tensor pts  = outputs_torch->elements()[0].toTensor().to(torch::kCPU).squeeze();
-    torch::Tensor desc = outputs_torch->elements()[1].toTensor().to(torch::kCPU).squeeze();
+    torch::Tensor pts  = outputs_torch->elements()[0].toTensor().squeeze().to(torch::kCPU);
+    torch::Tensor desc = outputs_torch->elements()[1].toTensor().squeeze().to(torch::kCPU);
 
     // TODO: Afroz please help add the postprocessing here
+    cv::Mat kpts_raw(cv::Size(3,  pts.size(0)), CV_32FC1, pts.data<float>());
+    cv::Mat desc_raw(cv::Size(32, pts.size(0)), CV_8UC1, desc.data<unsigned char>());
+    cv::Mat descriptors; // descriptors after applying non-maximal suppersion on keypoints
+
+    NonMaximalSuppression(kpts_raw, desc_raw, _keypoints, descriptors, border, dist_threshold);
+
+    int num_kpts = _keypoints.size();
+    _descriptors.create(num_kpts, 32, CV_8U);
+    descriptors.copyTo(_descriptors.getMat());
 }
 
 
 void GCNv2DetectorDescriptor::detectAndComputeONNX( cv::Mat& _gray_image_fp32, \
-                                                     std::vector<cv::KeyPoint>& _keypoints, \
-                                                     cv::OutputArray& _descriptors )
+                                                    std::vector<cv::KeyPoint>& _keypoints, \
+                                                    cv::OutputArray& _descriptors )
 {
     throw std::runtime_error("detectAndComputeONNX not implement yet\n");
     // TODO: implement this
@@ -171,8 +206,8 @@ void GCNv2DetectorDescriptor::detectAndComputeONNX( cv::Mat& _gray_image_fp32, \
 
 
 void GCNv2DetectorDescriptor::detectAndComputeTVM( cv::Mat& _gray_image_fp32, \
-                                                     std::vector<cv::KeyPoint>& _keypoints, \
-                                                     cv::OutputArray& _descriptors )
+                                                   std::vector<cv::KeyPoint>& _keypoints, \
+                                                   cv::OutputArray& _descriptors )
 {
     throw std::runtime_error("detectAndComputeTVM not implement yet\n");
     // TODO: implement this
