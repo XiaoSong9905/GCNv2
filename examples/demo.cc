@@ -7,9 +7,15 @@ int main(int argc, const char* argv[])
 {
     printf("Remember to export model filename path to enviroment before run this example\n");
 
+    if ( argc != 1 )
+    {
+        printf("Usage: ./demo PATH_TO_IMAGE\n");
+        exit(1);
+    }
+
     // Set image input
     printf("..Read in example image\n"); fflush( stdout );
-    cv::Mat image = cv::imread("../models/sather_gate.jpg");
+    cv::Mat image = cv::imread( argv[1], CV_LOAD_IMAGE_COLOR );
 
     // Create a detector descriptor instance
     cv::Feature2D GCNv2_detector_descriptor = gcnv2::GCNv2DetectorDescriptor( \
