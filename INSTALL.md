@@ -8,10 +8,12 @@
     * If you only want to build the GCNv2 OpenCV package, then you only need to install TVM runtime
     * If you want to convert (compile) onnx/pytorch model to tvm model, then you need to install both TVM runtime and compiler
 3. LibTorch [pytorch.org](https://pytorch.org/cppdocs/installing.html), cpp interface of pytorch
+4. ONNX runtime [github](https://github.com/microsoft/onnxruntime.git) and build from source, [doc](https://onnxruntime.ai/docs/build/inferencing.html)
+    * `./build.sh --config RelWithDebInfo --build_shared_lib --parallel --config Release --build_wheel`
 
 ## Install python related dependency
 1. create conda enviroment with python=3.8
-2. install torch, torchvision
+2. `conda install pytorch torchvision torchaudio cpuonly -c pytorch`
 3. `pip3 install onnx onnxruntime`
 
 

@@ -2,11 +2,20 @@
 # Convert pytorch model to torchscript
 # Reference https://pytorch.org/tutorials/beginner/Intro_to_TorchScript_tutorial.html 
 #
+import sys
 import torch
 
 def main():
+    # Get input output file
+    if ( len(sys.argv) != 3 ):
+        print("Usage: python3 convert_pytorch_to_torchscript.py PYTORCH_MODEL_FILENAME TORCHSCRIPT_MODEL_FILENAME")
+        exit(1)
+
+    PYTORCH_FILENAME = sys.argv[1]
+    TORCHSCRIPT_FILENAME = sys.argv[2]
+
     # Load model structure and parameter
-    torch_model = torch.load("GCNv2.pth")
+    torch_model = torch.load(PYTORCH_FILENAME)
 
     # Set model to inference mode
     torch_model.eval()
@@ -30,10 +39,10 @@ def main():
     torchscript_output = torchscript_model( torch_input )
 
     # Save torchscript model
-    torchscript_model.save("GCNv2.pt")
+    torchscript_model.save(TORCHSCRIPT_FILENAME)
 
     # Load torchscript to validate
-    torchscript_model_load = torch.jit.load("GCNv2.pt")
+    torchscript_model_load = torch.jit.load(TORCHSCRIPT_FILENAME)
     torchscript_output = torchscript_model_load( torch_input )
 
 if __name__ == '__main__':

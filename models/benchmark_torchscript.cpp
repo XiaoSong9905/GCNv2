@@ -20,7 +20,7 @@ int main(int argc, const char* argv[])
     // Load torchscript torch_model
     printf("..Load torchscript model\n");
     torch::jit::script::Module torch_model;
-    try 
+    try
     {
         // Deserialize the Module from a file using torch::jit::load().
         torch_model = torch::jit::load(argv[1]);

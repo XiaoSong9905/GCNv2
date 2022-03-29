@@ -13,7 +13,7 @@ int main(int argc, const char* argv[])
 {
     if (argc != 2) 
     {
-        printf( "usage: ./run_torchscript <PATH_TO_TORCHSCRIPT_FILE>\n" );
+        printf( "usage: ./run_torchscript <TORCHSCRIPT_MODEL_FILENAME>\n" );
         return -1;
     }
 
