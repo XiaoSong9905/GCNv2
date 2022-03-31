@@ -146,22 +146,59 @@ void NonMaximalSuppression( cv::Mat kpts_raw, \
                             int border, \
                             int dist_threshold)
 {
-    // TODO: needs work
+    cv::Mat kpt_grid  = cv::Mat( cv::Size( img_width, img_height ), CV_8UC1 );
+    cv::Mat kpt_index = cv::Mat( cv::Size( img_width, img_height ), CV_16UC1 );
+    kpt_grid.setTo(0);
+    kpt_index.setTo(0);
 
-    // create a grid and init a vector for holding indices
-    // put grid[i][j] = 1 for keypoint detects
-
-    // if grid[i][j] = 1 and grid[i+delta][j+delta]=1, put all values around i,j = 0, put grid[i][j] = 2,
-    // keep grid[i][j] = 1
-
-    // places where grid[i][j] == 2, put them in keypoints and save their indices
-    // put saved indices values to descriptors, maybe combine this in one step
-
-    for (int i = 0; i < kpts_raw.rows; ++i)
+    for ( int i = 0; i < kpts_raw.rows; ++i )
     {
-        int u = kpts.at<float>(i, 0);
-        int v = kpts.at<float>(i, 1);
+        int u = kpts_raw.at<float>(i, 0);
+        int v = kpts_raw.at<float>(i, 1);
+        kpt_grid.at<char>(u, v) = 1;
+        kpt_index.at<unsigned short>(u, v) = i;
     }
+
+    cv::copyMakeBorder( kpt_grid, kpt_grid, dist_threshold, dist_threshold,
+                        dist_threshold, dist_threshold, cv::BORDER_CONSTANT, 0 );
+
+    for ( int i = 0; i < kpts_raw.rows; ++i )
+    {
+        int u = kpts_raw.at<float>(i, 0) + dist_threshold;
+        int v = kpts_raw.at<float>(i, 1) + dist_threshold;
+
+        if ( kpt_grid.at<char>(u, v) != 1 )
+            continue;
+
+        for ( int j = -dist_threshold; j <= dist_threshold; ++j )
+            for ( int k = -dist_threshold; k <= dist_threshold; ++k )
+            {
+                if ( j == 0 && k == 0)
+                    continue;
+
+                kpt_grid.at<char>(u + j, v + k) = 0;
+            }
+        kpt_grid.at<char>(u, v) = 2;
+    }
+
+    std::vector<int> valid_idxs;
+    for ( int u = dist_threshold + border; u < img_width + border; ++u )
+        for ( int v = dist_threshold + border; v < img_height + border; ++v )
+        {
+            if (kpt_grid.at<char>(u, v) == 2) {
+                int idx = (int) kpt_index.at<unsigned short>(u - dist_threshold, v - dist_threshold);
+                _keypoints.push_back( cv::KeyPoint( kpts_raw.at<float>(idx, 0), kpts_raw.at<float>(idx, 1), 1.0f ) );
+                valid_idxs.push_back(idx);
+            }
+        }
+
+    descriptors.create(valid_idxs.size(), 32, CV_8U);
+
+    for ( int i = 0; i < valid_idxs.size(); ++i )
+        for ( int j = 0; j < 32; ++j )
+        {
+            descriptors.at<unsigned char>(i, j) = desc_raw.at<unsigned char>(valid_idxs[i], j);
+        }
 }
 
 
@@ -169,6 +206,13 @@ void GCNv2DetectorDescriptor::detectAndComputeTorch( cv::Mat& _gray_image_fp32, 
                                                      std::vector<cv::KeyPoint>& _keypoints, \
                                                      cv::OutputArray& _descriptors )
 {
+    // Stack the gray scale image in the way model expects it
+    cv::Mat tmp_frame, img_frame;
+    cv::resize( _gray_image_fp32, tmp_frame, cv::Size( img_width/3, img_height/3 ) );
+    cv::hconcat(tmp_frame, tmp_frame, img_frame);
+    cv::hconcat(img_frame, tmp_frame, img_frame);
+    cv::copyMakeBorder(img_frame, img_frame, 0, 2*img_height/3, 0, 0, cv::BORDER_CONSTANT, 0);
+
     // Convert OpenCV data to torch compatable data type
     static std::vector<int64_t> dims = {1, img_height, img_width, 1};
     auto input_torch = torch::from_blob( _gray_image_fp32.data, dims, torch::kFloat32 ).to( torch_device );
@@ -183,7 +227,6 @@ void GCNv2DetectorDescriptor::detectAndComputeTorch( cv::Mat& _gray_image_fp32, 
     torch::Tensor pts  = outputs_torch->elements()[0].toTensor().squeeze().to(torch::kCPU);
     torch::Tensor desc = outputs_torch->elements()[1].toTensor().squeeze().to(torch::kCPU);
 
-    // TODO: Afroz please help add the postprocessing here
     cv::Mat kpts_raw(cv::Size(3,  pts.size(0)), CV_32FC1, pts.data<float>());
     cv::Mat desc_raw(cv::Size(32, pts.size(0)), CV_8UC1, desc.data<unsigned char>());
     cv::Mat descriptors; // descriptors after applying non-maximal suppersion on keypoints
