@@ -143,20 +143,19 @@ void NonMaximalSuppression( cv::Mat kpts_raw, \
                             cv::Mat desc_raw, \
                             std::vector<cv::KeyPoint>& _keypoints, \
                             cv::Mat& descriptors, \
-                            int border, \
                             int dist_threshold)
 {
     cv::Mat kpt_grid  = cv::Mat( cv::Size( img_width, img_height ), CV_8UC1 );
     cv::Mat kpt_index = cv::Mat( cv::Size( img_width, img_height ), CV_16UC1 );
-    kpt_grid.setTo(0);
-    kpt_index.setTo(0);
+    kpt_grid.setTo( 0 );
+    kpt_index.setTo( 0 );
 
     for ( int i = 0; i < kpts_raw.rows; ++i )
     {
-        int u = kpts_raw.at<float>(i, 0);
-        int v = kpts_raw.at<float>(i, 1);
-        kpt_grid.at<char>(u, v) = 1;
-        kpt_index.at<unsigned short>(u, v) = i;
+        int u = (int) kpts_raw.at<float>(i, 0);
+        int v = (int) kpts_raw.at<float>(i, 1);
+        kpt_grid.at<char>(v, u) = 1;
+        kpt_index.at<unsigned short>(v, u) = i;
     }
 
     cv::copyMakeBorder( kpt_grid, kpt_grid, dist_threshold, dist_threshold,
@@ -164,30 +163,33 @@ void NonMaximalSuppression( cv::Mat kpts_raw, \
 
     for ( int i = 0; i < kpts_raw.rows; ++i )
     {
-        int u = kpts_raw.at<float>(i, 0) + dist_threshold;
-        int v = kpts_raw.at<float>(i, 1) + dist_threshold;
+        int u = (int) kpts_raw.at<float>(i, 0) + dist_threshold;
+        int v = (int) kpts_raw.at<float>(i, 1) + dist_threshold;
 
-        if ( kpt_grid.at<char>(u, v) != 1 )
+        if ( kpt_grid.at<char>(v, u) != 1 )
             continue;
 
         for ( int j = -dist_threshold; j <= dist_threshold; ++j )
             for ( int k = -dist_threshold; k <= dist_threshold; ++k )
             {
-                if ( j == 0 && k == 0)
+                if ( j == 0 && k == 0 )
                     continue;
 
-                kpt_grid.at<char>(u + j, v + k) = 0;
+                kpt_grid.at<char>( v + j, u + k ) = 0;
             }
-        kpt_grid.at<char>(u, v) = 2;
+
+        kpt_grid.at<char>(v, u) = 2;
     }
 
     std::vector<int> valid_idxs;
-    for ( int u = dist_threshold + border; u < img_width + border; ++u )
-        for ( int v = dist_threshold + border; v < img_height + border; ++v )
+    for ( int u = dist_threshold; u < img_width - dist_threshold; ++u )
+        for ( int v = dist_threshold; v < img_height - dist_threshold; ++v )
         {
-            if (kpt_grid.at<char>(u, v) == 2) {
-                int idx = (int) kpt_index.at<unsigned short>(u - dist_threshold, v - dist_threshold);
-                _keypoints.push_back( cv::KeyPoint( kpts_raw.at<float>(idx, 0), kpts_raw.at<float>(idx, 1), 1.0f ) );
+            if (kpt_grid.at<char>(v, u) == 2) {
+                int idx = (int) kpt_index.at<unsigned short>( v - dist_threshold, u - dist_threshold );
+                int x = kpts_raw.at<float>(idx, 0);
+                int y = kpts_raw.at<float>(idx, 1);
+                _keypoints.push_back( cv::KeyPoint( x, y, 1.0f ) );
                 valid_idxs.push_back(idx);
             }
         }
@@ -212,11 +214,12 @@ void GCNv2DetectorDescriptor::detectAndComputeTorch( cv::Mat& _gray_image_fp32, 
     cv::hconcat(tmp_frame, tmp_frame, img_frame);
     cv::hconcat(img_frame, tmp_frame, img_frame);
     cv::copyMakeBorder(img_frame, img_frame, 0, 2*img_height/3, 0, 0, cv::BORDER_CONSTANT, 0);
+    int dist_threshold = 8; // TODO: this should be a config param based on img height and img width
 
     // Convert OpenCV data to torch compatable data type
     static std::vector<int64_t> dims = {1, img_height, img_width, 1};
-    auto input_torch = torch::from_blob( _gray_image_fp32.data, dims, torch::kFloat32 ).to( torch_device );
-    input_torch = input_torch.permute({0,3,1,2});
+    auto input_torch = torch::from_blob( img_frame.data, dims, torch::kFloat32 ).to( torch_device );
+    input_torch = input_torch.permute({0, 3, 1, 2});
     std::vector<torch::jit::IValue> inputs_torch;
     inputs_torch.push_back( input_torch );
 
@@ -231,7 +234,7 @@ void GCNv2DetectorDescriptor::detectAndComputeTorch( cv::Mat& _gray_image_fp32, 
     cv::Mat desc_raw(cv::Size(32, pts.size(0)), CV_8UC1, desc.data<unsigned char>());
     cv::Mat descriptors; // descriptors after applying non-maximal suppersion on keypoints
 
-    NonMaximalSuppression(kpts_raw, desc_raw, _keypoints, descriptors, border, dist_threshold);
+    NonMaximalSuppression(kpts_raw, desc_raw, _keypoints, descriptors, dist_threshold);
 
     int num_kpts = _keypoints.size();
     _descriptors.create(num_kpts, 32, CV_8U);
