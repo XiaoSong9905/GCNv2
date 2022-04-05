@@ -120,8 +120,8 @@ endif (MSVC)
 # GCNv2
 include_directories(include)
 add_library(${PROJECT_NAME} STATIC 
-                            src/gcn.cc )
-            
+                            src/gcnv2.cc )
+
 # Add link
 target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBS} ${Torch_LIBS})
 
