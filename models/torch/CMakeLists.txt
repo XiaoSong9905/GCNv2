@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 # Set project name
-project( GCNv2_model )
+project( GCNv2_model_torch )
 
 # Set C++ standard
 # specify the C++ standard

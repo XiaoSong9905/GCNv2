@@ -19,13 +19,13 @@ def main():
         print("Usage: python3 convert_onnx_to_tvm_by_tvmc.py ONNX_MODEL_FILENAME TVM_MODEL_FILENAME (TVM_TUNNING_LOG)")
         exit(1)
 
-    ONNX_FIILENAME = sys.argv[1]
-    TVM_FILENAME   = sys.argv[2]
+    ONNX_MODEL_FILENAME = sys.argv[1]
+    TVM_MODEL_FILENAME   = sys.argv[2]
 
-    print(f"...Convert ONNX model [{ONNX_FIILENAME}] to TVM model [{TVM_FILENAME}]")
+    print(f"...Convert ONNX model [{ONNX_MODEL_FILENAME}] to TVM model [{TVM_MODEL_FILENAME}]")
 
     # Step 1: Load ONNX model and convert to relay (TVM internal model representation)
-    tvm_relay_model = tvmc.load( ONNX_FIILENAME )
+    tvm_relay_model = tvmc.load( ONNX_MODEL_FILENAME )
 
     # Step 1.5: Tune ONNX model
     # TODO: change -mcpu=??? to your CPU architecture by running `cat /sys/devices/cpu/caps/pmu_name`
@@ -33,18 +33,18 @@ def main():
     if ( len(sys.argv) == 4 ):
         tunning_records_log = sys.argv
     else:
-        tunning_records_log = ONNX_FIILENAME + '.tvm-tunning-log.json'
+        tunning_records_log = ONNX_MODEL_FILENAME + '.tvm-tunning-log.json'
         tvmc.tune( tvm_relay_model, target="llvm -mcpu=skylake", tuning_records=tunning_records_log, enable_autoscheduler = True )
 
     # Step 2: Compile
     tvm_compiled_model = tvmc.compile( tvm_relay_model, target="llvm -mcpu=skylake", \
-        tuning_records=tunning_records_log, package_path=TVM_FILENAME )
+        tuning_records=tunning_records_log, package_path=TVM_MODEL_FILENAME )
 
     # Step 3: Run tunned model with tvm runtime to ensure functionality
     result = tvmc.run( tvm_compiled_model, device="cpu" )
 
     # Load saved package file to verity model work
-    tvm_compiled_model_load = tvmc.TVMCPackage( package_path=TVM_FILENAME )
+    tvm_compiled_model_load = tvmc.TVMCPackage( package_path=TVM_MODEL_FILENAME )
     result = tvmc.run( tvm_compiled_model_load, device="cpu" )
 
 

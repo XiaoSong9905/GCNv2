@@ -14,11 +14,11 @@ def train_GCNv2():
 
     # Save model (parameter and structure)
     # NOTE: do not use model.state_dict() here since we want to store the structure
-    PYTORCH_FILENAME = sys.argv[1]
-    torch.save(model, PYTORCH_FILENAME)
+    PYTORCH_MODEL_FILENAME = sys.argv[1]
+    torch.save(model, PYTORCH_MODEL_FILENAME)
 
     # Since we store the weight and sturctue of model, we can load all model information
-    # model = torch.load(PYTORCH_FILENAME)
+    # model = torch.load(PYTORCH_MODEL_FILENAME)
 
 if __name__ == '__main__':
     if ( len(sys.argv) != 2 ):
