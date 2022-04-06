@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <memory> // unique_ptr, shared_ptr
-#include <opencv2/features2d.hpp>
+#include <opencv2/opencv.hpp>
 #include <torch/script.h>
 
 namespace gcnv2
@@ -18,20 +18,12 @@ namespace gcnv2
 class GCNv2DetectorDescriptor : public cv::Feature2D
 {
     public:
-        // Runtim type
-        enum class RUNTIME_TYPE
-        {
-            TORCH,
-            ONNX,
-            TVM
-        };
-
         /**
          * @brief The GCNv2 constructor for torchscript
          * 
          * @param param-name param-content
          */
-        GCNv2DetectorDescriptor( RUNTIME_TYPE runtime_type, int img_height, int img_width, bool use_cuda );
+        GCNv2DetectorDescriptor( int img_height, int img_width );
 
         /**
          * @brief Destroy the GCNv2DetectorDescriptor object
@@ -65,49 +57,29 @@ class GCNv2DetectorDescriptor : public cv::Feature2D
         /**
          * @brief Getname of this extractor, used in some opencv funciton
          * 
-         * @return std::string 
+         * @return cv::String
          */
-        virtual std::string getDefaultName() const override;
+        virtual cv::String getDefaultName() const override;
     
     protected:
-        // TODO add helper function & helper member varaible here
-
-        // Which model type to use
-        RUNTIME_TYPE runtime_type;
-
         // Model input height & width
         // All three type of runtime require fixed size input
         const int img_height;
         const int img_width;
 
-        // Use CUDA or not
-        bool use_cuda;
-
         // Device
-        torch::Device torch_device;
-        // TODO: add ONNX/TVM device
+        torch::Device torch_device = torch::DeviceType::CUDA;
 
         // Use unique ptr to avoid potential data race issue
-        std::unique_ptr<torch::jit::script::Module> torch_model;
-        // TODO: add ONNX/TVM model
+        torch::jit::script::Module torch_model;
 
         // Load and initialize model
         void initTorch( );
-        void initONNX( );
-        void initTVM( );
 
         // Run deep learning module 
         void detectAndComputeTorch( cv::Mat& _gray_image_fp32, \
                                     std::vector<cv::KeyPoint>& _keypoints, \
                                     cv::OutputArray& _descriptors );
-
-        void detectAndComputeONNX( cv::Mat& _gray_image_fp32, \
-                                   std::vector<cv::KeyPoint>& _keypoints, \
-                                   cv::OutputArray& _descriptors );
-
-        void detectAndComputeTVM( cv::Mat& _gray_image_fp32, \
-                                  std::vector<cv::KeyPoint>& _keypoints, \
-                                  cv::OutputArray& _descriptors );
 };
 
-};
+}
