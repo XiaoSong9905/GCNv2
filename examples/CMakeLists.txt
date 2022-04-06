@@ -29,16 +29,21 @@ else(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 # Set path to find Torch
-# 1. set enviroment variable
+# 1. set enviroment variable (can also be pytorch installed with python)
 # export CMAKE_PREFIX_PATH=/absolute/path/to/unzipped_libtorch:$CMAKE_PREFIX_PATH
+# 
+# Example, my conda enviroment is named `py3.7`
+# export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/
+# export CMAKE_PREFIX_PATH=/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/
 # 
 # 2. cmake command line input
 # cmake -DCMAKE_PREFIX_PATH=/absolute/path/to/libtorch:$CMAKE_PREFIX_PATH ..
+# cmake -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/ ..
 # 
 # All below methods require already download pytorch with conda / pip
 # Run conda activate before running `cmake ..`
 # 
-# 3. set enviroment variable
+# 3. set enviroment variable (only work for later version of pytorch)
 # export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`
 #
 # 4. set Torch_Dir (need to run conda activate py3.8 first)
@@ -53,7 +58,6 @@ endif(NOT CMAKE_BUILD_TYPE)
 # list(APPEND CMAKE_PREFIX_PATH ${TorchPath})
 
 # If you prefer to use your own pytorch version, use methods 1.2 mentioned above
-
 
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")

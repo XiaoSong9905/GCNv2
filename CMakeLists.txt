@@ -52,7 +52,7 @@ endif()
 
 # require OpenCV
 find_package( OpenCV REQUIRED )
-include_directories(BEFORE PUBLIC ${OpenCV_INCLUDE_DIRS} )
+include_directories(BEFORE ${OpenCV_INCLUDE_DIRS} )
 
 # Arm / X86 optimize flag
 if(${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "arm*")
@@ -64,16 +64,21 @@ else()
 endif()
 
 # Set path to find Torch
-# 1. set enviroment variable
+# 1. set enviroment variable (can also be pytorch installed with python)
 # export CMAKE_PREFIX_PATH=/absolute/path/to/unzipped_libtorch:$CMAKE_PREFIX_PATH
+# 
+# Example, my conda enviroment is named `py3.7`
+# export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/
+# export CMAKE_PREFIX_PATH=/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/
 # 
 # 2. cmake command line input
 # cmake -DCMAKE_PREFIX_PATH=/absolute/path/to/libtorch:$CMAKE_PREFIX_PATH ..
+# cmake -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/ ..
 # 
 # All below methods require already download pytorch with conda / pip
 # Run conda activate before running `cmake ..`
 # 
-# 3. set enviroment variable
+# 3. set enviroment variable (only work for later version of pytorch)
 # export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`
 #
 # 4. set Torch_Dir (need to run conda activate py3.8 first)
@@ -91,11 +96,11 @@ endif()
 
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-include_directories(BEFORE PUBLIC ${TORCH_INCLUDE_DIRS})
+include_directories(BEFORE ${TORCH_INCLUDE_DIRS})
 
 if (${TORCH_FOUND})
   message(STATUS "Found Torch dir : ${TORCH_INCLUDE_DIRS}")
-  message(STATUS "Found Torch obj : ${TORCH_LIBRARIES}")
+  message(STATUS "Found Torch lib : ${TORCH_LIBRARIES}")
 endif()
 
 # The following code block is suggested to be used on Windows.
