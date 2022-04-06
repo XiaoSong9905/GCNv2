@@ -19,24 +19,28 @@ ubuntu-drivers devices
 # For which cuda driver, cuda toolkits match, check https://docs.nvidia.com/deploy/cuda-compatibility/index.html
 sudo apt-get install nvidia-driver-470
 
-# install cuda toolkit 10.0 ( for pytorch version compatable )
-# Install instruction can be found here https://developer.nvidia.com/cuda-10.0-download-archive
-# If you install the wrong cudatookits version, follow https://askubuntu.com/questions/530043/removing-nvidia-cuda-toolkit-and-installing-new-one to remove previous version
-# TODO may considered install pytorch in other way
-conda install pytorch==1.2.0 torchvision==0.4.0 cudatoolkit=10.0 -c pytorch
+# Install pytorch (1.1.0) from scratch
+pip install pyyaml==5.4.1
+git clone --recursive -b v1.0.1 https://github.com/pytorch/pytorch
+cd pytorch && mkdir build && cd build
+python3 ../tools/build_libtorch.py
 
-# export the cuda toolkits enviroment
-export CMAKE_PREFIX_PATH=/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/
+# install cuda toolkit 10.0 (deprecated, no use)
+# conda install cudatoolkit=10.0 -c pytorch
 
-# Install cuDNN 7.6.5 (for compatable with cuda toolkits)
-# https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html#install-linux
-# TODO may considered install cudnn in other way
-conda install cudnn=7.6.5
+# Install pytroch (1.1.0) from conda (deprecated, no use)
+# conda install pytorch==1.1.0 torchvision==0.3.0 cudatoolkit=10.0 -c pytorch
 
-# export the cudnn env
+# export the cuda toolkits enviroment (deprecated, no use)
+# export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/
+
+# Install cuDNN 7.6.5 (deprecated, no use)
+# conda install cudnn=7.6.5
+
+# export the cudnn env (deprecated, no use)
 # note: below my conda env is called py3.7
-export CUDNN_LIBRARY=/home/xiaosx/anaconda3/envs/py3.7/lib/libcudnn.so
-export CUDNN_INCLUDE_DIR=/home/xiaosx/anaconda3/envs/py3.7/include/
+# export CUDNN_LIBRARY=/home/xiaosx/anaconda3/envs/py3.7/lib/libcudnn.so
+# export CUDNN_INCLUDE_DIR=/home/xiaosx/anaconda3/envs/py3.7/include/
 ```
 
 

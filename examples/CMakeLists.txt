@@ -62,6 +62,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 include_directories(BEFORE ${TORCH_INCLUDE_DIRS})
+message(STATUS "Found Torch dir : ${TORCH_INCLUDE_DIRS}")
+message(STATUS "Found Torch lib : ${TORCH_LIBRARIES}")
 
 find_package( OpenCV REQUIRED )
 include_directories(BEFORE ${OpenCV_INCLUDE_DIRS})

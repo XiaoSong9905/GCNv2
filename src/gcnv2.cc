@@ -29,7 +29,8 @@ void GCNv2DetectorDescriptor::initTorch( )
     try
     {
         // Deserialize the Module from a file using torch::jit::load().
-        torch_model = torch::jit::load( model_filename, torch_device );
+        torch_model = torch::jit::load( model_filename );
+        torch_model->to( torch_device );
     }
     catch ( std::exception& e )
     {
@@ -40,10 +41,10 @@ void GCNv2DetectorDescriptor::initTorch( )
 
 
 void GCNv2DetectorDescriptor::detectAndCompute( cv::InputArray _image, \
-                                             cv::InputArray _mask, \
-                                             std::vector<cv::KeyPoint>& _keypoints, \
-                                             cv::OutputArray& _descriptors, \
-                                             bool _useProvidedKeypoints )
+                                                cv::InputArray _mask, \
+                                                std::vector<cv::KeyPoint>& _keypoints, \
+                                                cv::OutputArray& _descriptors, \
+                                                bool _useProvidedKeypoints )
 {
     // Currently don't support provided keypoint
     if ( _useProvidedKeypoints || _keypoints.size() )
@@ -176,7 +177,7 @@ void GCNv2DetectorDescriptor::detectAndComputeTorch( cv::Mat& _gray_image_fp32, 
     inputs_torch.push_back( input_torch );
 
     // Run model
-    auto outputs_torch = torch_model.forward(inputs_torch).toTuple();
+    auto outputs_torch = torch_model->forward(inputs_torch).toTuple();
 
     // Extract output
     torch::Tensor pts  = outputs_torch->elements()[0].toTensor().squeeze().to(torch::kCPU);

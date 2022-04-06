@@ -68,10 +68,10 @@ class GCNv2DetectorDescriptor : public cv::Feature2D
         const int img_width;
 
         // Device
-        torch::Device torch_device = torch::DeviceType::CUDA;
+        torch::Device torch_device = torch::kCUDA;
 
         // Use unique ptr to avoid potential data race issue
-        torch::jit::script::Module torch_model;
+        std::shared_ptr<torch::jit::script::Module> torch_model;
 
         // Load and initialize model
         void initTorch( );
