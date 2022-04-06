@@ -64,35 +64,35 @@ else()
 endif()
 
 # Set path to find Torch
-# 1. set enviroment variable (can also be pytorch installed with python)
-# export CMAKE_PREFIX_PATH=/absolute/path/to/unzipped_libtorch:$CMAKE_PREFIX_PATH
+# 1. set enviroment variable before run smake
+# export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/absolute/path/to/unzipped_libtorch
 # 
 # Example, my conda enviroment is named `py3.7`
 # export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/
 # export CMAKE_PREFIX_PATH=/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/
 # 
+# One can use conda installed pytorch (for > 1.10.0 pytorch) for c++ project too
+# Running below line will execute the python code and give you the correct path to cmake
+# export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:`python3 -c 'import torch;print(torch.utils.cmake_prefix_path)'`
+# 
 # 2. cmake command line input
-# cmake -DCMAKE_PREFIX_PATH=/absolute/path/to/libtorch:$CMAKE_PREFIX_PATH ..
+# cmake -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/absolute/path/to/libtorch ..
 # cmake -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/home/xiaosx/anaconda3/envs/py3.7/lib/python3.7/site-packages/torch/share/cmake/ ..
 # 
-# All below methods require already download pytorch with conda / pip
-# Run conda activate before running `cmake ..`
-# 
-# 3. set enviroment variable (only work for later version of pytorch)
-# export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`
+# 3. set Torch_DIR before run cmake
+# export Torch_DIR=
 #
-# 4. set Torch_Dir (need to run conda activate py3.8 first)
+# 4. set Torch_Dir in cmake file
 # set(Torch_DIR "/home/xiaosx/anaconda3/envs/py3.8/lib/python3.8/site-packages/torch/share/cmake/Torch/")
 #
-# 5. set CMAKE_PREFIX_PATH (need to run conda activate py3.8 first)
-
-# If you want to use python3's pytorch, uncomment below section
+# 5. Use below auto script inside cmake and no need to do anything
+# below script will use conda installed pytorch for python
+# 
+# If you want to use python3's pytorch and auto search, uncomment below section
 # execute_process(
 #   COMMAND python3 -c "import torch; import os; print(os.path.dirname(torch.__file__), end='')"
 #   OUTPUT_VARIABLE TorchPath )
 # list(APPEND CMAKE_PREFIX_PATH ${TorchPath})
-
-# If you prefer to use your own pytorch version, use methods 1.2 mentioned above
 
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
@@ -135,7 +135,7 @@ add_library(${PROJECT_NAME} STATIC src/gcnv2.cc)
 
 
 # and link it
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME}
   ${OpenCV_LIBS} 
   ${TORCH_LIBRARIES} )
 
