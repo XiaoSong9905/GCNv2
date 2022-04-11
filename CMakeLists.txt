@@ -140,10 +140,10 @@ add_library(${PROJECT_NAME} STATIC
 # and link it
 target_link_libraries(${PROJECT_NAME} PUBLIC
   ${OpenCV_LIBS} 
-  ${TORCH_LIBRARIES} )
+  ${TORCH_LIBRARIES})
 
 # installation if required
-install(TARGETS ${PROJECT_NAME} 
+install(TARGETS ${PROJECT_NAME} caffe2_library caffe2_gpu_library
   EXPORT ${PROJECT_NAME}Targets
   ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
 
@@ -154,6 +154,8 @@ install(DIRECTORY include/ DESTINATION
 # installation is invoked in the individual modules...
 export (TARGETS 
   ${PROJECT_NAME}
+  caffe2_library
+  caffe2_gpu_library
   FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 export (PACKAGE ${PROJECT_NAME} )
 
@@ -187,3 +189,4 @@ install(FILES
 # Install the export set for use with the install-tree
 install(EXPORT ${PROJECT_NAME}Targets DESTINATION 
   "${INSTALL_CMAKE_DIR}")
+
