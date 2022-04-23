@@ -21,7 +21,7 @@ int main ( int argc, char** argv )
     cv::Mat descriptors1, descriptors2;
 
     printf("Build our own GCNv2 feature detector\n"); fflush( stdout );
-    gcnv2::GCNv2DetectorDescriptor gcnv2_feature{ 640, 480 };
+    gcnv2::GCNv2DetectorDescriptor gcnv2_feature{ 480, 640 };
     gcnv2_feature.detectAndCompute( image1, cv::noArray(), keypoints1, descriptors1 );
     gcnv2_feature.detectAndCompute( image2, cv::noArray(), keypoints2, descriptors2 );
 

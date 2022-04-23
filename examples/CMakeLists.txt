@@ -68,9 +68,11 @@ message(STATUS "Found Torch lib : ${TORCH_LIBRARIES}")
 find_package( OpenCV REQUIRED )
 include_directories(BEFORE ${OpenCV_INCLUDE_DIRS})
 
+#[[set (Gcnv2_DIR "/home/openark/DeepKeypoints/GCNv2/build")
 find_package( gcnv2 REQUIRED )
 include_directories( ${GCNV2_INCLUDE_DIRS} )
 message( STATUS "Found GCNv2 : ${GCNV2_INCLUDE_DIRS}")
+]]
 
-add_executable( demo demo.cc  )
-target_link_libraries( demo ${OpenCV_LIBS} gcnv2)
+add_executable( demo demo.cc gcnv2.cc gcnv2.h )
+target_link_libraries( demo ${OpenCV_LIBS} ${TORCH_LIBRARIES})
