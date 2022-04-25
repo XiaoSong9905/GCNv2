@@ -1,0 +1,16 @@
+# - Config file for the OKVIS package
+# It defines the following variables
+#  GCNV2_INCLUDE_DIRS - include directories for FooBar
+#  GCNV2_LIBRARIES    - libraries to link against
+#  GCNV2_EXECUTABLE   - the okvis_app_synchronous executable
+ 
+# Compute paths
+get_filename_component(GCNV2_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(GCNV2_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+ 
+# Our library dependencies (contains definitions for IMPORTED targets)
+if(NOT TARGET GCNV2 AND NOT GCNV2_BINARY_DIR)
+  include("${GCNV2_CMAKE_DIR}/gcnv2Targets.cmake")
+endif()
+ 
+

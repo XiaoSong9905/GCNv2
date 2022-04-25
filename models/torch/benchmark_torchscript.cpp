@@ -11,9 +11,9 @@
 
 int main(int argc, const char* argv[]) 
 {
-    if (argc != 2) 
+    if (argc != 3) 
     {
-        printf( "usage: ./benchmark_torchscript <PATH_TO_TORCHSCRIPT_FILE>\n" );
+        printf( "usage: ./run_torchscript <TORCHSCRIPT_MODEL_PATH> <IMAGE_PATH>\n" );
         return -1;
     }
 
@@ -35,7 +35,7 @@ int main(int argc, const char* argv[])
     printf("..Read input image\n");
     int img_height = 640;
     int img_width = 480;
-    cv::Mat input_opencv = cv::imread( "../sather_gate.jpg", cv::IMREAD_GRAYSCALE );
+    cv::Mat input_opencv = cv::imread( argv[2], cv::IMREAD_GRAYSCALE );
     input_opencv.convertTo( input_opencv, CV_32FC1, 1.0f / 255.0f, 0 );
     cv::resize( input_opencv, input_opencv, cv::Size( img_width, img_height ) );
 

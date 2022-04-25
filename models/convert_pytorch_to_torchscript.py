@@ -11,11 +11,11 @@ def main():
         print("Usage: python3 convert_pytorch_to_torchscript.py PYTORCH_MODEL_FILENAME TORCHSCRIPT_MODEL_FILENAME")
         exit(1)
 
-    PYTORCH_FILENAME = sys.argv[1]
-    TORCHSCRIPT_FILENAME = sys.argv[2]
+    PYTORCH_MODEL_FILENAME = sys.argv[1]
+    TORCHSCRIPT_MODEL_FILENAME = sys.argv[2]
 
     # Load model structure and parameter
-    torch_model = torch.load(PYTORCH_FILENAME)
+    torch_model = torch.load(PYTORCH_MODEL_FILENAME)
 
     # Set model to inference mode
     torch_model.eval()
@@ -39,10 +39,10 @@ def main():
     torchscript_output = torchscript_model( torch_input )
 
     # Save torchscript model
-    torchscript_model.save(TORCHSCRIPT_FILENAME)
+    torchscript_model.save(TORCHSCRIPT_MODEL_FILENAME)
 
     # Load torchscript to validate
-    torchscript_model_load = torch.jit.load(TORCHSCRIPT_FILENAME)
+    torchscript_model_load = torch.jit.load(TORCHSCRIPT_MODEL_FILENAME)
     torchscript_output = torchscript_model_load( torch_input )
 
 if __name__ == '__main__':

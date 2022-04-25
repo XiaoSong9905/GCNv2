@@ -1,13 +1,32 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 # Set project name
-project( GCNv2_model )
+project( GCNv2_model_torch )
 
 # Set C++ standard
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O0")
+
+#####
+# Change the default build type from Debug to Release, while still
+# supporting overriding the build type.
+#
+# The CACHE STRING logic here and elsewhere is needed to force CMake
+# to pay attention to the value of these variables.
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING
+        "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+        FORCE)
+else(NOT CMAKE_BUILD_TYPE)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        message("==========================================================================================")
+        message(STATUS "Build type: Debug. Performance will be terrible!")
+        message(STATUS "Add -DCMAKE_BUILD_TYPE=Release to the CMake command line to get an optimized build.")
+        message("==========================================================================================")
+    endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+endif(NOT CMAKE_BUILD_TYPE)
 
 # Set path to find Torch
 # 1. set enviroment variable
@@ -32,12 +51,13 @@ execute_process(
 )
 list(APPEND CMAKE_PREFIX_PATH ${TorchPath})
 find_package(Torch REQUIRED)
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+MESSAGE( STATUS "Found torch ${TORCH_LIBRARIES}")
 
 # Set path to find OpenCV
 find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS}) 
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+MESSAGE(STATUS "Found OpenCV version: ${OpenCV_VERSION}")
 
 # Run TorchScript
 add_executable(run_torchscript run_torchscript.cpp)
@@ -50,12 +70,6 @@ add_executable(benchmark_torchscript benchmark_torchscript.cpp)
 target_link_libraries(benchmark_torchscript "${TORCH_LIBRARIES}")
 target_link_libraries(benchmark_torchscript "${OpenCV_LIBS}")
 set_property(TARGET benchmark_torchscript PROPERTY CXX_STANDARD 14)
-
-# Benchmark ONNX
-
-
-# Benchmark TVM
-
 
 # The following code block is suggested to be used on Windows.
 # According to https://github.com/pytorch/pytorch/issues/25457,
